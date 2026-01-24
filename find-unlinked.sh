@@ -23,15 +23,16 @@ for i in "${!EXTENSIONS[@]}"; do
     fi
 done
 
+output=""
 total_size=0
 
 while read -r file; do
     inode=$(stat -c '%i' "$file")
-    
+
     if ! find "$DEST" -type f -inum "$inode" -print -quit | grep -q .; then
         size=$(stat -c '%s' "$file")
         total_size=$((total_size + size))
-        
+
         dir=$(dirname "$file")
         output+="${dir#$SOURCE/}"$'\n'
     fi
