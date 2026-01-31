@@ -85,6 +85,23 @@ get_movie_tags() {
     fi
 }
 
+check_is_4k() {
+    local movie_id="$1"
+
+    # Fetch movie details to get quality info
+    local response=$(curl -s -H "X-Api-Key: $API_KEY" "$RADARR_URL/api/v3/movie/$movie_id")
+
+    # Extract resolution from quality.quality.resolution (integer field)
+    local quality_resolution=$(echo "$response" | grep -o '"quality":{[^}]*"resolution":[0-9]*' | grep -o '"resolution":[0-9]*' | grep -o '[0-9]*' | head -1)
+
+    # Check if resolution is 2160 or higher (4K)
+    if [ -n "$quality_resolution" ] && [ "$quality_resolution" -ge 2160 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 main() {
     local movie_id="${radarr_movie_id}"
     local movie_filename="${radarr_moviefile_relativepath}"
@@ -112,14 +129,14 @@ main() {
     fi
 
     if [ "$has_tag" = true ]; then
-        if [[ ! "$movie_filename" =~ 2160p ]]; then
+        if ! check_is_4k "$movie_id"; then
             remove_tag "$movie_id" "$tag_id"
             echo "Removed '4k' tag from the movie."
         else
             echo "Movie already marked as 4k. No action taken."
         fi
     else
-        if [[ "$movie_filename" =~ 2160p ]]; then
+        if check_is_4k "$movie_id"; then
             add_tag "$movie_id" "$tag_id"
             echo "Added '4k' tag to the movie."
         else
