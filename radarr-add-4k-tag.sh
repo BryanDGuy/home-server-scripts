@@ -88,11 +88,11 @@ get_movie_tags() {
 check_is_4k() {
     local movie_id="$1"
 
-    # Fetch movie details to get quality info
-    local response=$(curl -s -H "X-Api-Key: $API_KEY" "$RADARR_URL/api/v3/movie/$movie_id")
+    # Fetch movie details and remove newlines for easier parsing
+    local response=$(curl -s -H "X-Api-Key: $API_KEY" "$RADARR_URL/api/v3/movie/$movie_id" | tr -d '\n' | tr -d ' ')
 
-    # Extract resolution from quality.quality.resolution (integer field)
-    local quality_resolution=$(echo "$response" | grep -o '"quality":{[^}]*"resolution":[0-9]*' | grep -o '"resolution":[0-9]*' | grep -o '[0-9]*' | head -1)
+    # Get the FIRST "resolution" integer value (from quality.quality.resolution)
+    local quality_resolution=$(echo "$response" | grep -o '"resolution":[0-9]*' | head -1 | sed 's/"resolution"://')
 
     # Check if resolution is 2160 or higher (4K)
     if [ -n "$quality_resolution" ] && [ "$quality_resolution" -ge 2160 ]; then
