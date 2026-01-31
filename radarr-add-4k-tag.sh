@@ -1,8 +1,10 @@
 #!/bin/bash
 
-## Add your radarr instance URL and API key here
-RADARR_URL="XXXX"
-API_KEY="XXXX"
+# Get the directory where this script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source the configuration file
+source "$SCRIPT_DIR/server-config.cfg"
 
 get_tag_id() {
     local response=$(curl -s -w "\n%{http_code}" \
